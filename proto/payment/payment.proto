@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package payment;
+// option go_package="./grpcService";
+option go_package = "github.com/tanasinp/go-microservices-ecommerce/proto/payment;paymentproto";
+
+service PaymentService {
+    rpc CreatePayment(CreatePaymentRequest) returns(CreatePaymentResponse);
+    rpc GetPaymentStatus(GetPaymentStatusRequest) returns(GetPaymentStatusResponse);
+}
+
+message CreatePaymentRequest {
+    string order_id = 1;
+    string user_id = 2;
+    double total = 3;
+}
+
+message CreatePaymentResponse {
+    string payment_id = 1;
+    string status = 2;
+}
+
+message GetPaymentStatusRequest {
+    string payment_id = 1;
+}
+
+message GetPaymentStatusResponse {
+    string payment_id = 1;
+    string order_id = 2;
+    string user_id = 3;
+    string status = 4; 
+    double total = 5;
+}

@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	PaymentService_CreatePayment_FullMethodName    = "/payment.PaymentService/CreatePayment"
-	PaymentService_GetPaymentStatus_FullMethodName = "/payment.PaymentService/GetPaymentStatus"
+	PaymentService_CreatePayment_FullMethodName       = "/payment.PaymentService/CreatePayment"
+	PaymentService_GetPaymentStatus_FullMethodName    = "/payment.PaymentService/GetPaymentStatus"
+	PaymentService_UpdatePaymentStatus_FullMethodName = "/payment.PaymentService/UpdatePaymentStatus"
 )
 
 // PaymentServiceClient is the client API for PaymentService service.
@@ -29,6 +30,7 @@ const (
 type PaymentServiceClient interface {
 	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*CreatePaymentResponse, error)
 	GetPaymentStatus(ctx context.Context, in *GetPaymentStatusRequest, opts ...grpc.CallOption) (*GetPaymentStatusResponse, error)
+	UpdatePaymentStatus(ctx context.Context, in *UpdatePaymentStatusRequest, opts ...grpc.CallOption) (*UpdatePaymentStatusResponse, error)
 }
 
 type paymentServiceClient struct {
@@ -59,12 +61,23 @@ func (c *paymentServiceClient) GetPaymentStatus(ctx context.Context, in *GetPaym
 	return out, nil
 }
 
+func (c *paymentServiceClient) UpdatePaymentStatus(ctx context.Context, in *UpdatePaymentStatusRequest, opts ...grpc.CallOption) (*UpdatePaymentStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePaymentStatusResponse)
+	err := c.cc.Invoke(ctx, PaymentService_UpdatePaymentStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentServiceServer is the server API for PaymentService service.
 // All implementations must embed UnimplementedPaymentServiceServer
 // for forward compatibility
 type PaymentServiceServer interface {
 	CreatePayment(context.Context, *CreatePaymentRequest) (*CreatePaymentResponse, error)
 	GetPaymentStatus(context.Context, *GetPaymentStatusRequest) (*GetPaymentStatusResponse, error)
+	UpdatePaymentStatus(context.Context, *UpdatePaymentStatusRequest) (*UpdatePaymentStatusResponse, error)
 	mustEmbedUnimplementedPaymentServiceServer()
 }
 
@@ -77,6 +90,9 @@ func (UnimplementedPaymentServiceServer) CreatePayment(context.Context, *CreateP
 }
 func (UnimplementedPaymentServiceServer) GetPaymentStatus(context.Context, *GetPaymentStatusRequest) (*GetPaymentStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentStatus not implemented")
+}
+func (UnimplementedPaymentServiceServer) UpdatePaymentStatus(context.Context, *UpdatePaymentStatusRequest) (*UpdatePaymentStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePaymentStatus not implemented")
 }
 func (UnimplementedPaymentServiceServer) mustEmbedUnimplementedPaymentServiceServer() {}
 
@@ -127,6 +143,24 @@ func _PaymentService_GetPaymentStatus_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentService_UpdatePaymentStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePaymentStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServiceServer).UpdatePaymentStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentService_UpdatePaymentStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServiceServer).UpdatePaymentStatus(ctx, req.(*UpdatePaymentStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PaymentService_ServiceDesc is the grpc.ServiceDesc for PaymentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -141,6 +175,10 @@ var PaymentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPaymentStatus",
 			Handler:    _PaymentService_GetPaymentStatus_Handler,
+		},
+		{
+			MethodName: "UpdatePaymentStatus",
+			Handler:    _PaymentService_UpdatePaymentStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -18,15 +18,15 @@ import (
 )
 
 func main() {
-	// Database connection setup
-	host := "localhost"
-	port := "5434"
-	user := "myuser"
-	password := "mypassword"
-	dbname := "payments_db"
-	dsn := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	db := setupDatabase()
+	orderService := setupOrderService()
+	startGRPCServer(db, orderService)
+}
+
+// set up the database connection and migration
+func setupDatabase() *gorm.DB {
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		"localhost", "5434", "myuser", "mypassword", "payments_db")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -34,31 +34,35 @@ func main() {
 	if err := db.AutoMigrate(&core.Payment{}); err != nil {
 		log.Fatalf("Failed to auto-migrate database: %v", err)
 	}
+	return db
+}
 
+// set up the gRPC connection to the order service
+func setupOrderService() adaptersOrder.OrderService {
 	creds := insecure.NewCredentials()
 	orderConn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer orderConn.Close()
-	orderClient := protoOrder.NewOrderServiceClient(orderConn)
-	orderService := adaptersOrder.NewOrderService(orderClient)
 
-	// Setup services and gRPC server
+	orderClient := protoOrder.NewOrderServiceClient(orderConn)
+	return adaptersOrder.NewOrderService(orderClient)
+}
+
+// start the gRPC server for the payment service
+func startGRPCServer(db *gorm.DB, orderService adaptersOrder.OrderService) {
 	paymentRepo := adapters.NewGormPaymentRepository(db)
 	paymentService := core.NewPaymentService(paymentRepo, orderService)
 	paymentServer := grpcService.NewPaymentServiceServer(paymentService)
 
 	grpcServer := grpc.NewServer()
+	protoPayment.RegisterPaymentServiceServer(grpcServer, paymentServer)
+
 	listener, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Register the payment service with the gRPC server
-	protoPayment.RegisterPaymentServiceServer(grpcServer, paymentServer)
-
-	// Start the gRPC server
 	fmt.Println("gRPC Payment server listening on port 50052")
 	err = grpcServer.Serve(listener)
 	if err != nil {

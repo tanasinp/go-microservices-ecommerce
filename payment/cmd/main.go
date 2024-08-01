@@ -5,11 +5,14 @@ import (
 	"log"
 	"net"
 
+	adaptersOrder "github.com/tanasinp/go-microservices-ecommerce/payment/internal/adapters"
 	adapters "github.com/tanasinp/go-microservices-ecommerce/payment/internal/adapters/db"
 	grpcService "github.com/tanasinp/go-microservices-ecommerce/payment/internal/adapters/grpcService"
 	"github.com/tanasinp/go-microservices-ecommerce/payment/internal/core"
+	protoOrder "github.com/tanasinp/go-microservices-ecommerce/proto/order"
 	protoPayment "github.com/tanasinp/go-microservices-ecommerce/proto/payment"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -32,9 +35,18 @@ func main() {
 		log.Fatalf("Failed to auto-migrate database: %v", err)
 	}
 
+	creds := insecure.NewCredentials()
+	orderConn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(creds))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer orderConn.Close()
+	orderClient := protoOrder.NewOrderServiceClient(orderConn)
+	orderService := adaptersOrder.NewOrderService(orderClient)
+
 	// Setup services and gRPC server
 	paymentRepo := adapters.NewGormPaymentRepository(db)
-	paymentService := core.NewPaymentService(paymentRepo)
+	paymentService := core.NewPaymentService(paymentRepo, orderService)
 	paymentServer := grpcService.NewPaymentServiceServer(paymentService)
 
 	grpcServer := grpc.NewServer()

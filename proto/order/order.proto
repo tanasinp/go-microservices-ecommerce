@@ -6,6 +6,7 @@ option go_package = "github.com/tanasinp/go-microservices-ecommerce/proto/order;
 service OrderService {
     rpc CreateOrder(CreateOrderRequest) returns(CreateOrderResponse);
     rpc GetOrder(GetOrderRequest) returns(GetOrderResponse);
+    rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns(UpdateOrderStatusResponse);
 }
 
 message CreateOrderRequest {
@@ -36,4 +37,14 @@ message OrderItem {
     string product_id = 1;
     int32 quantity = 2;
     double price = 3;
+}
+
+message UpdateOrderStatusRequest {
+    string order_id = 1;
+    string status = 2;
+}
+ 
+message UpdateOrderStatusResponse {
+    bool success = 1;
+    string messsage = 2;
 }

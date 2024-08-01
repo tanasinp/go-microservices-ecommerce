@@ -7,6 +7,7 @@ option go_package = "github.com/tanasinp/go-microservices-ecommerce/proto/paymen
 service PaymentService {
     rpc CreatePayment(CreatePaymentRequest) returns(CreatePaymentResponse);
     rpc GetPaymentStatus(GetPaymentStatusRequest) returns(GetPaymentStatusResponse);
+    rpc UpdatePaymentStatus(UpdatePaymentStatusRequest) returns(UpdatePaymentStatusResponse);
 }
 
 message CreatePaymentRequest {
@@ -30,4 +31,14 @@ message GetPaymentStatusResponse {
     string user_id = 3;
     string status = 4; 
     double total = 5;
+}
+
+message UpdatePaymentStatusRequest {
+    string payment_id = 1;
+    string status = 2;
+}
+
+message UpdatePaymentStatusResponse {
+    bool success = 1;
+    string message = 2;
 }

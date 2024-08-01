@@ -8,6 +8,7 @@ import (
 type OrderService interface {
 	CreateOrder(order *Order) error
 	GetOrder(id string) (*Order, error)
+	UpdateOrderStatusByID(orderID string, status string) error
 }
 
 // business logic
@@ -36,4 +37,11 @@ func (s *orderServiceImpl) GetOrder(id string) (*Order, error) {
 		return nil, err
 	}
 	return order, nil
+}
+
+func (s *orderServiceImpl) UpdateOrderStatusByID(orderID string, status string) error {
+	if err := s.repo.UpdateOrderStatusByID(orderID, status); err != nil {
+		return err
+	}
+	return nil
 }

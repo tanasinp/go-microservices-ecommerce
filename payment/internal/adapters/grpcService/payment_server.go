@@ -51,6 +51,20 @@ func (s *paymentServiceServer) GetPaymentStatus(ctx context.Context, req *protoP
 	}, nil
 }
 
+func (s *paymentServiceServer) UpdatePaymentStatus(ctx context.Context, req *protoPayment.UpdatePaymentStatusRequest) (*protoPayment.UpdatePaymentStatusResponse, error) {
+	err := s.service.UpdatePaymentStatusByID(req.PaymentId, req.Status)
+	if err != nil {
+		return &protoPayment.UpdatePaymentStatusResponse{
+			Success: false,
+			Message: err.Error(),
+		}, nil
+	}
+	return &protoPayment.UpdatePaymentStatusResponse{
+		Success: true,
+		Message: "Payment status updated successfully",
+	}, nil
+}
+
 func generateUniqueID() string {
 	return "payment-" + uuid.New().String()
 }

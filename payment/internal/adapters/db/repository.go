@@ -24,3 +24,7 @@ func (r *gormPaymentRepository) FindPaymentStatusByID(paymentID string) (*core.P
 	}
 	return &payment, nil
 }
+
+func (r *gormPaymentRepository) UpdatePaymentStatusByID(paymentID string, status string) error {
+	return r.db.Model(&core.Payment{}).Where("id = ?", paymentID).Update("status", status).Error
+}

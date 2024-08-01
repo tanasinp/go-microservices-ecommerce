@@ -25,3 +25,7 @@ func (r *gormOrderRepository) FindByID(id string) (*core.Order, error) {
 	}
 	return &order, nil
 }
+
+func (r *gormOrderRepository) UpdateOrderStatusByID(orderID string, status string) error {
+	return r.db.Model(&core.Order{}).Where("id = ?", orderID).Update("status", status).Error
+}

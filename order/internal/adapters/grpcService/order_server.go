@@ -58,6 +58,20 @@ func (s *orderServiceServer) GetOrder(ctx context.Context, req *protoOrder.GetOr
 	return &res, nil
 }
 
+func (s *orderServiceServer) UpdateOrderStatus(ctx context.Context, req *protoOrder.UpdateOrderStatusRequest) (*protoOrder.UpdateOrderStatusResponse, error) {
+	err := s.service.UpdateOrderStatusByID(req.OrderId, req.Status)
+	if err != nil {
+		return &protoOrder.UpdateOrderStatusResponse{
+			Success:  false,
+			Messsage: err.Error(),
+		}, nil
+	}
+	return &protoOrder.UpdateOrderStatusResponse{
+		Success:  true,
+		Messsage: "Order status updated successfully",
+	}, nil
+}
+
 func convertItems(items []*protoOrder.OrderItem) []core.OrderItem {
 	var orderItems []core.OrderItem
 	for _, item := range items {

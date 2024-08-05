@@ -19,7 +19,8 @@ import (
 
 func main() {
 	db := setupDatabase()
-	paymentService := setupPaymentService()
+	paymentService, paymentConn := setupPaymentService()
+	defer paymentConn.Close()
 	startGRPCServer(db, paymentService)
 }
 
@@ -38,16 +39,15 @@ func setupDatabase() *gorm.DB {
 }
 
 // set up the gRPC connection to the payment service
-func setupPaymentService() adaptersPayment.PaymentService {
+func setupPaymentService() (adaptersPayment.PaymentService, *grpc.ClientConn) {
 	creds := insecure.NewCredentials()
 	paymentConn, err := grpc.Dial("localhost:50052", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer paymentConn.Close()
 
 	paymentClient := protoPayment.NewPaymentServiceClient(paymentConn)
-	return adaptersPayment.NewPaymentSevice(paymentClient)
+	return adaptersPayment.NewPaymentSevice(paymentClient), paymentConn
 }
 
 // start the gRPC server for the order service
